@@ -261,13 +261,17 @@ namespace PLC_Omron_Standard
 		/// Reads data from the PLC and converts the result to a <see cref="string"/>
 		/// </summary>
 		/// <param name="address">The specific item to read</param>
+		/// <param name="length">Length of the string to read</param>
 		/// <exception cref="NullReferenceException"></exception>
-		public string ReadString(ushort address)
+		/// <remarks>
+		/// The length parameter is the total number of bytes to read from the PLC
+		/// </remarks>
+		public string ReadString(ushort address, ushort length)
 		{
-			var raw = Read(address);
+			var raw = Read(address, length);
 
 			if (raw.Length > 0)
-				return Encoding.ASCII.GetString(Read(address));
+				return Encoding.ASCII.GetString(raw).Split('\0').First();
 			else
 				throw new NullReferenceException(ErrorMessages.NoDataReceived);
 		}
@@ -402,15 +406,18 @@ namespace PLC_Omron_Standard
 		/// Reads data from the PLC and converts the result to a <see cref="string"/> array
 		/// </summary>
 		/// <param name="address">The specific item to read</param>
-		/// <param name="items">The total number of data points to read from the PLC</param>
+		/// <param name="length">The combined length of the strings to read</param>
 		/// <param name="startIndex">The first position to read</param>
 		/// <exception cref="NullReferenceException"></exception>
-		public string[] ReadStringArray(ushort address, ushort items, byte startIndex = 0)
+		/// <remarks>
+		/// The length parameter is the total number of bytes to read from the PLC
+		/// </remarks>
+		public string[] ReadStringArray(ushort address, ushort length, byte startIndex = 0)
 		{
-			var raw = Read(address, items, startIndex);
+			var raw = Read(address, length, startIndex);
 
 			if (raw.Length > 0)
-				return Encoding.ASCII.GetString(raw).Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+				return Encoding.ASCII.GetString(raw).Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None).Select(x => x.Split('\0').First()).ToArray();
 			else
 				throw new NullReferenceException(ErrorMessages.NoDataReceived);
 		}
@@ -491,7 +498,12 @@ namespace PLC_Omron_Standard
 		/// <param name="value">The value to write to the PLC</param>
 		public bool Write(ushort address, string value)
 		{
-			return Write(address, Encoding.ASCII.GetBytes(value).ToArray());
+			var bytes = Encoding.ASCII.GetBytes(value).ToArray();
+
+			if (bytes.Length > ushort.MaxValue)
+				return false;
+
+			return Write(address, bytes, count: (ushort)bytes.Length);
 		}
 
 		/// <summary>
@@ -577,7 +589,12 @@ namespace PLC_Omron_Standard
 		/// <param name="startIndex">The first position to write</param>
 		public bool Write(ushort address, string[] values, byte startIndex = 0)
 		{
-			return Write(address, values.SelectMany(x => Encoding.ASCII.GetBytes(x)).ToArray(), startIndex, (ushort)values.Length);
+			var bytes = values.SelectMany(x => Encoding.ASCII.GetBytes(x)).ToArray();
+
+			if (bytes.Length > ushort.MaxValue)
+				return false;
+
+			return Write(address, bytes, startIndex, (ushort)bytes.Length);
 		}
 	}
 }
