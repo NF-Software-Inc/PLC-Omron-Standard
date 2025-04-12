@@ -1,7 +1,9 @@
 # PLC Omron Standard
 
-[![MIT](https://img.shields.io/github/license/thirstyape/PLC-Omron-Standard)](https://github.com/thirstyape/PLC-Omron-Standard/blob/main/LICENSE)
+[![MIT](https://img.shields.io/github/license/NF-Software-Inc/PLC-Omron-Standard)](https://github.com/NF-Software-Inc/PLC-Omron-Standard/blob/main/LICENSE)
 [![NuGet](https://img.shields.io/nuget/v/Plc.Omron.Standard.svg)](https://www.nuget.org/packages/Plc.Omron.Standard/)
+[![Build](https://img.shields.io/github/actions/workflow/status/NF-Software-Inc/PLC-Omron-Standard/build.yml)](https://github.com/NF-Software-Inc/PLC-Omron-Standard/actions/workflows/build.yml)
+[![Publish](https://img.shields.io/github/actions/workflow/status/NF-Software-Inc/PLC-Omron-Standard/publish.yml?label=publish)](https://github.com/NF-Software-Inc/PLC-Omron-Standard/actions/workflows/publish.yml)
 
 This project was created to have an easy to use, .NET Standard library to communicate with Omron PLCs. The following features are available:
 
