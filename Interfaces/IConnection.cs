@@ -1,4 +1,6 @@
-﻿namespace PLC_Omron_Standard.Interfaces
+﻿using System;
+
+namespace PLC_Omron_Standard.Interfaces
 {
     /// <param name="sent">The data that was sent to the PLC</param>
 	public delegate void SentData(byte[] sent);
@@ -46,22 +48,25 @@
         /// </summary>
         bool Disconnect();
 
-        /// <summary>
-        /// Sends the provided packet to the PLC
-        /// </summary>
-        /// <param name="packet">The packet to send</param>
-        bool SendData(IFinsPacket packet);
+		/// <summary>
+		/// Sends the provided packet to the PLC
+		/// </summary>
+		/// <param name="packet">The packet to send</param>
+		/// <exception cref="InvalidOperationException">Thrown when the connection has not been established.</exception>
+		bool SendData(IFinsPacket packet);
 
-        /// <summary>
-        /// Sends the provided data to the PLC
-        /// </summary>
-        /// <param name="data">The data to send</param>
-        bool SendData(byte[] data);
+		/// <summary>
+		/// Sends the provided data to the PLC
+		/// </summary>
+		/// <param name="data">The data to send</param>
+		/// <exception cref="InvalidOperationException">Thrown when the connection has not been established.</exception>
+		bool SendData(byte[] data);
 
-        /// <summary>
-        /// Receives the specified amount of data from the PLC
-        /// </summary>
-        /// <param name="length">The amount of data to receive</param>
-        byte[] ReceiveData(int length);
+		/// <summary>
+		/// Receives the specified amount of data from the PLC
+		/// </summary>
+		/// <param name="length">The amount of data to receive</param>
+		/// <exception cref="InvalidOperationException">Thrown when the connection has not been established.</exception>
+		byte[] ReceiveData(int length);
     }
 }

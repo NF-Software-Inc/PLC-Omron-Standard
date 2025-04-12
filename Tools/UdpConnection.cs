@@ -40,7 +40,7 @@ namespace PLC_Omron_Standard.Tools
 		public event ReceivedData NotifyReceivedData;
 
 		/// <inheritdoc/>
-		public bool IsConnected => Client?.Client?.Connected ?? false;
+		public bool IsConnected { get; private set; }
 
 		/// <inheritdoc/>
 		public byte RemoteNode { get; private set; }
@@ -54,6 +54,8 @@ namespace PLC_Omron_Standard.Tools
 			try
 			{
 				Client.Connect(Endpoint);
+				IsConnected = true;
+
 				return IsConnected;
 			}
 			catch
@@ -77,13 +79,17 @@ namespace PLC_Omron_Standard.Tools
 			{
 				return false;
 			}
+			finally
+			{
+				IsConnected = false;
+			}
 		}
 
 		/// <inheritdoc/>
 		public byte[] ReceiveData(int length)
 		{
 			if (IsConnected == false)
-				return Array.Empty<byte>();
+				throw new InvalidOperationException("Connection is not established.");
 
 			try
 			{
@@ -105,7 +111,7 @@ namespace PLC_Omron_Standard.Tools
 		public bool SendData(byte[] data)
 		{
 			if (IsConnected == false)
-				return false;
+				throw new InvalidOperationException("Connection is not established.");
 
 			try
 			{

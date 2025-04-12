@@ -108,9 +108,9 @@ namespace PLC_Omron_Standard.Tools
         public byte[] ReceiveData(int length)
         {
             if (IsConnected == false)
-                return Array.Empty<byte>();
+				throw new InvalidOperationException("Connection is not established.");
 
-            try
+			try
             {
                 var response = new byte[4_096];
                 var received = Socket.Receive(response, length, SocketFlags.None);
@@ -133,9 +133,9 @@ namespace PLC_Omron_Standard.Tools
         public bool SendData(byte[] data)
         {
             if (IsConnected == false)
-                return false;
+				throw new InvalidOperationException("Connection is not established.");
 
-            try
+			try
             {
                 var sent = Socket.Send(data, data.Length, SocketFlags.None);
 				NotifySentData?.Invoke(data);
