@@ -262,16 +262,20 @@ namespace PLC_Omron_Standard
 		/// </summary>
 		/// <param name="address">The specific item to read</param>
 		/// <param name="length">Length of the string to read</param>
+		/// <param name="encoding">The encoding to use when converting the byte array to a string (default is ASCII)</param>
 		/// <exception cref="NullReferenceException"></exception>
 		/// <remarks>
 		/// The length parameter is the total number of bytes to read from the PLC
 		/// </remarks>
-		public string ReadString(ushort address, ushort length)
+		public string ReadString(ushort address, ushort length, Encoding encoding = null)
 		{
 			var raw = Read(address, length);
 
+			if (encoding == null)
+				encoding = Encoding.ASCII;
+
 			if (raw.Length > 0)
-				return Encoding.ASCII.GetString(raw).Split('\0').First();
+				return encoding.GetString(raw.Partition(2, false).SelectMany(x => x.Reverse()).ToArray()).Split('\0').First().TrimEnd();
 			else
 				throw new NullReferenceException(ErrorMessages.NoDataReceived);
 		}
@@ -408,16 +412,20 @@ namespace PLC_Omron_Standard
 		/// <param name="address">The specific item to read</param>
 		/// <param name="length">The combined length of the strings to read</param>
 		/// <param name="startIndex">The first position to read</param>
+		/// <param name="encoding">The encoding to use when converting the byte array to a string (default is ASCII)</param>
 		/// <exception cref="NullReferenceException"></exception>
 		/// <remarks>
 		/// The length parameter is the total number of bytes to read from the PLC
 		/// </remarks>
-		public string[] ReadStringArray(ushort address, ushort length, byte startIndex = 0)
+		public string[] ReadStringArray(ushort address, ushort length, byte startIndex = 0, Encoding encoding = null)
 		{
 			var raw = Read(address, length, startIndex);
 
+			if (encoding == null)
+				encoding = Encoding.ASCII;
+
 			if (raw.Length > 0)
-				return Encoding.ASCII.GetString(raw).Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None).Select(x => x.Split('\0').First()).ToArray();
+				return encoding.GetString(raw.Partition(2, false).SelectMany(x => x.Reverse()).ToArray()).Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None).Select(x => x.Split('\0').First().TrimEnd()).ToArray();
 			else
 				throw new NullReferenceException(ErrorMessages.NoDataReceived);
 		}
@@ -496,9 +504,16 @@ namespace PLC_Omron_Standard
 		/// </summary>
 		/// <param name="address">The address on the PLC to write to</param>
 		/// <param name="value">The value to write to the PLC</param>
-		public bool Write(ushort address, string value)
+		/// <param name="encoding">The encoding to use when converting the string to a byte array (default is ASCII)</param>
+		/// <remarks>
+		/// Strings must be even in length, as each character is written to a pair of two consecutive sub-addresses. It is also recommended to append white-space characters to the end of the string to fill up the total length on the PLC.
+		/// </remarks>
+		public bool Write(ushort address, string value, Encoding encoding = null)
 		{
-			var bytes = Encoding.ASCII.GetBytes(value).ToArray();
+			if (encoding == null)
+				encoding = Encoding.ASCII;
+
+			var bytes = encoding.GetBytes(value).Partition(2, false).SelectMany(x => x.Reverse()).ToArray();
 
 			if (bytes.Length > ushort.MaxValue)
 				return false;
@@ -587,9 +602,16 @@ namespace PLC_Omron_Standard
 		/// <param name="address">The address on the PLC to write to</param>
 		/// <param name="values">The values to write to the PLC</param>
 		/// <param name="startIndex">The first position to write</param>
-		public bool Write(ushort address, string[] values, byte startIndex = 0)
+		/// <param name="encoding">The encoding to use when converting the string to a byte array (default is ASCII)</param>
+		/// <remarks>
+		/// Strings must be even in length, as each character is written to a pair of two consecutive sub-addresses. They must also use the total length on the PLC, so it is recommended to append white-space characters to the end of each string to fill up the total length on the PLC.
+		/// </remarks>
+		public bool Write(ushort address, string[] values, byte startIndex = 0, Encoding encoding = null)
 		{
-			var bytes = values.SelectMany(x => Encoding.ASCII.GetBytes(x)).ToArray();
+			if (encoding == null)
+				encoding = Encoding.ASCII;
+
+			var bytes = values.SelectMany(x => encoding.GetBytes(x).Partition(2, false).SelectMany(y => y.Reverse())).ToArray();
 
 			if (bytes.Length > ushort.MaxValue)
 				return false;
